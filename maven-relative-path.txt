@@ -1,0 +1,7 @@
+<dependency>
+    <groupId>com.zephyr</groupId>
+    <artifactId>zephyr-socket-server</artifactId>
+    <version>4.7</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/libs/zephyr-socket-server-4.7.jar</systemPath>
+</dependency>
