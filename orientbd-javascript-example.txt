@@ -1,0 +1,32 @@
+var result = db.query("select from TestScript");
+
+for(var resultIndex = 1; resultIndex < result.length; resultIndex++)
+{
+  var statements = result[resultIndex].field("statements");
+  if(statements != null)
+  {  
+    for(var statementsIndex = 0; statementsIndex < statements.length; statementsIndex ++)
+    {
+      var tempStatement = statements[statementsIndex];
+      if(tempStatement == null)
+		continue ;
+      else if(tempStatement.field("@class") == 'IfStatement' || tempStatement.field("@class") == 'LoopStatement' || tempStatement.field("@class") == 'OnParadigmStatement')
+      {
+		
+      }
+      else
+      {
+        if(tempStatement.field("@class") == statement)
+        {
+		  tempStatement.field(newProperty,defaultValue);
+          //return tempStatement;
+          
+        }
+      }
+      statements[statementsIndex] = tempStatement;
+    } 
+    return statements;
+    var commandResult = db.executeCommand("UPDATE TestScript ADD statements = " + statements + " WHERE @rid = " + result[resultIndex]['@rid'] );  
+    return "UPDATE TestScript ADD statements = " + statements + " WHERE @rid = " + result[resultIndex]['@rid'] ;
+  }
+}
