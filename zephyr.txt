@@ -1,0 +1,50 @@
+    @GET
+    @Path("/zephyr")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getZephyrInfo() {
+    	org.json.simple.JSONObject statusObject = new org.json.simple.JSONObject();
+    	try {
+			ZephyrIntegration.loginProcess();
+	    	statusObject.putAll(ZephyrIntegration.getZephyrInfo());
+	    	ZephyrIntegration.logoutProcess();
+		} catch (ZephyrServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}        
+        return Response.ok().header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD").entity(statusObject.toString()).build();
+    }
+
+
+	public static HashMap<String,HashMap> getZephyrInfo() throws ZephyrServiceException
+	{
+		HashMap<String,HashMap> projectInfo = new HashMap<String,HashMap>();
+		List<RemoteProject> remoteProjectList = client.getProjectsByCriteria(null,true,token);
+		RemoteCriteria rc = new RemoteCriteria();
+		List<RemoteCriteria> rcList = new ArrayList<RemoteCriteria>();
+		for (RemoteProject remoteProject : remoteProjectList) {
+			rcList.clear();
+			rc.setSearchName("project.name");
+			rc.setSearchOperation(SearchOperation.EQUALS);
+			rc.setSearchValue(remoteProject.getName());
+			rcList.add(rc);
+			List<RemoteRelease> remoteReleaseList = client.getReleasesByCriteria(rcList, false, token);
+			HashMap<String,ArrayList> releaseInfo = new HashMap<String,ArrayList>();
+			
+			for (RemoteRelease remoteRelease : remoteReleaseList) {
+				rcList.clear();
+				rc.setSearchName("releaseId");
+				rc.setSearchOperation(SearchOperation.EQUALS);
+				rc.setSearchValue(remoteRelease.getId()+"");
+				rcList.add(rc);
+				List<RemoteCycle> remoteCycleList = client.getCyclesByCriteria(rcList, false, token);
+				ArrayList<String> cycles = new ArrayList<String>();
+				for (RemoteCycle remoteCycle : remoteCycleList) {
+					cycles.add(remoteCycle.getName());
+				}
+				releaseInfo.put(remoteRelease.getName(), cycles);
+						
+			}
+			projectInfo.put(remoteProject.getName(), releaseInfo);
+		}
+		return projectInfo;
+	}
