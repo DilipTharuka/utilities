@@ -1,0 +1,142 @@
+package com.virtusa.vtaf.dsl;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Arrays;
+
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.xerces.dom.PSVIDOMImplementationImpl;
+
+import com.virtusa.vtaf.db.ODbConnector;
+import com.virtusa.vtaf.exception.VTAFException;
+import com.virtusa.vtaf.util.ExecutionContext;
+
+public class FileToTableStatement {
+
+	private DataContainerClass dataContainerClass ;
+	private String dataContainerName ;
+	private String project;
+	
+	public DataContainerClass getDataContainerClass() {
+		return dataContainerClass;
+	}
+
+	public void setDataContainerClass(DataContainerClass dataContainerClass) {
+		this.dataContainerClass = dataContainerClass;
+	}
+
+	public String getDataContainerName() {
+		return dataContainerName;
+	}
+
+	public void setDataContainerName(String dataContainerName) {
+		this.dataContainerName = dataContainerName;
+	}
+
+	public String getProject() {
+		return project;
+	}
+
+	public void setProject(String project) {
+		this.project = project;
+	}
+
+	protected void execute(ExecutionContext executionContext) throws Exception {
+		
+		try {
+		     
+		    FileInputStream inputStream = new FileInputStream(new File("C:\\Users\\Dilip\\Desktop\\abc-1.ods"));
+		    Workbook workbook = new XSSFWorkbook(inputStream);
+	        Sheet sheet = workbook.getSheetAt(0);
+		    
+		    VField[] vfields = compareFileAndTable(sheet);
+		    System.out.println(Arrays.toString(vfields));
+		    int sheetColumnCount = sheet.getRow(0).getPhysicalNumberOfCells();
+		    int sheetRowCount = sheet.getPhysicalNumberOfRows();
+		    Cell cell;
+		    String[] rowData = new String[sheetColumnCount];
+		    for (int i = 2; i < sheetRowCount; i++) {
+		    	// row has less data throw error
+				for (int j = 0; j < sheetColumnCount; j++) {
+					cell = sheet.getRow(i).getCell(j);
+					if(cell == null)
+						rowData[j] = "";
+					else
+					{
+						cell.setCellType(Cell.CELL_TYPE_STRING);
+						rowData[j] = cell.getStringCellValue();
+					}
+					
+				}
+				System.out.println(Arrays.toString(rowData)); 
+			}	      
+		    inputStream.close();	     
+		} catch (FileNotFoundException e) {
+		    e.printStackTrace();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
+		
+	}
+		
+	public VField[] compareFileAndTable(Sheet sheet) throws VTAFException
+	{	    
+		int sheetColumnCount = sheet.getRow(0).getPhysicalNumberOfCells();
+		VField[] vfields = ((ClassSubset)dataContainerClass).getVfields();
+		int tableColumnCount = vfields.length;
+		if(sheetColumnCount != tableColumnCount )
+			throw new VTAFException("Number of column mismatch bettween Data Table : " + tableColumnCount + " and Excel Sheet : " + sheetColumnCount);
+		
+		VField[] newVfields = new VField[sheetColumnCount];
+		boolean isFound;
+		for (int i = 0; i < sheetColumnCount; i++) 
+		{
+			isFound = false;
+			for (int j = 0; j < sheetColumnCount; j++) 
+			{
+				if(vfields[i].getName().equalsIgnoreCase(sheet.getRow(0).getCell(j).getStringCellValue()))
+				{
+					newVfields[j] = vfields[i];
+					isFound = true;
+				}					
+			}
+			if(isFound == false)
+				throw new VTAFException("Field " + vfields[i].getName() + " cannot find in excel sheet");
+		}
+		
+		String fieldType;
+		for (int i = 0; i < sheetColumnCount; i++) {
+			fieldType = sheet.getRow(1).getCell(i).getStringCellValue();
+			if(!fieldType.equalsIgnoreCase("Int") && !fieldType.equalsIgnoreCase("Integer") && !fieldType.equalsIgnoreCase("Double") && !fieldType.equalsIgnoreCase("Long") && !fieldType.equalsIgnoreCase("String") && !fieldType.equalsIgnoreCase("Boolean") && !fieldType.equalsIgnoreCase("Float"))
+				throw new VTAFException(fieldType + " is not support datatype.");
+		}
+		return newVfields;	
+	}
+	public static void main(String[] args)
+	{
+		FileToTableStatement fts = new FileToTableStatement();
+		ClassSubset cs = new ClassSubset();
+		VField[] vfields = new VField[4];
+		vfields[0] = new VField("name",null);
+		vfields[1] = new VField("marrid",null);
+		vfields[2] = new VField("age",null);
+		vfields[3] = new VField("salary",null);
+		cs.setVfields(vfields);
+		fts.setDataContainerClass(cs);
+		try {
+			fts.execute(null);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.out.println(e);
+			//e.printStackTrace();
+		}
+	}
+}
