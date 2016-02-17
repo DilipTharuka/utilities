@@ -11,3 +11,9 @@ C:\Users\dtkarunathilaka\Desktop\EventChangeMonitor\EventChangeMonitor\EventChan
 C:\Users\dtkarunathilaka\Desktop\EventChangeMonitor\EventChangeMonitor\EventChangeMonitor\bin\Debug\EventChangeMonitor.pdb
 C:\Users\dtkarunathilaka\Desktop\EventChangeMonitor\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csprojResolveAssemblyReference.cache
 C:\Users\dtkarunathilaka\Desktop\EventChangeMonitor\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csproj.ResolveComReference.cache
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\EventChangeMonitor.exe.config
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\EventChangeMonitor.exe
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\EventChangeMonitor.pdb
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.exe
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.pdb
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csprojResolveAssemblyReference.cache

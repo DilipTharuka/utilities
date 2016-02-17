@@ -21,9 +21,19 @@ namespace EventChangeMonitor
 
         static void Main(string[] args)
         {
+            /**** set console configurations ****/
+            Console.WindowHeight = 50;
+            Console.WindowWidth = 150;
+            Console.BufferHeight = 999;
+            Console.BufferWidth = 200;
+
             Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
             definePackageList();
+
+            /**** start listner ****/
             Automation.AddAutomationFocusChangedEventHandler(OnFocusChangedHandler);
+
+            /**** wait for enter key ****/
             while (true)
             {
                 ConsoleKeyInfo c = Console.ReadKey();
@@ -41,17 +51,18 @@ namespace EventChangeMonitor
                 AutomationElement element = src as AutomationElement;
                 if (element != null)
                 {
-                    //Console.WriteLine("Focus changed !");
+                    /*** get the main window title of focus element ***/
                     int processId = element.Current.ProcessId;
                     Process process = Process.GetProcessById(processId);
+                    
                     string mainWindowTitle = null;
                     if (packageList.Contains(process.ProcessName))
                         mainWindowTitle = process.ProcessName;
                     else
                         mainWindowTitle = process.MainWindowTitle;
 
+                    /*** get the activity object corresponding to main window title ***/
                     Activity currentActivity = null;
-
                     if (activityList.ContainsKey(mainWindowTitle))
                     {
                         currentActivity = activityList[mainWindowTitle];
@@ -61,16 +72,25 @@ namespace EventChangeMonitor
                     {
                         currentActivity = new Activity();
                         currentActivity.processName = process.ProcessName;
-                    }
+                    }        
 
-                    currentActivity.startTime = startTime;
-
-                    if (lastWindowName != null && activityList.ContainsKey(lastWindowName))
+                    if (lastWindowName != null)
                     {
-                        activityList[lastWindowName].endTime = startTime;
-                        activityList[lastWindowName].generateDuration();
-                    }
 
+                        if (lastWindowName == mainWindowTitle)
+                        {
+                            currentActivity.endTime = startTime;
+                            currentActivity.generateDuration();
+                        }
+
+                        else
+                        {
+                            activityList[lastWindowName].endTime = startTime;
+                            activityList[lastWindowName].generateDuration();
+                        }
+                        
+                    }
+                    currentActivity.startTime = startTime;
                     activityList.Add(mainWindowTitle, currentActivity);
                     lastWindowName = mainWindowTitle;
                 }
@@ -98,6 +118,7 @@ namespace EventChangeMonitor
             packageList.Add("explorer");
             packageList.Add("firefox");
             packageList.Add("iexplore");
+            packageList.Add("");
 
         }
 
