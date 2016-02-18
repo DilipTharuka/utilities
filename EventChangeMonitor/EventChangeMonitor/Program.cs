@@ -6,41 +6,69 @@ using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Diagnostics;
 using System.Data;
+using Microsoft.Win32;
+using System.Windows.Forms;
 
 namespace EventChangeMonitor
 {
-    class Program
+    class Program 
     {
         private static Dictionary<string, Activity> activityList = new Dictionary<string, Activity>();
         private static List<String> packageList = new List<string>();
         private static string lastWindowName = null;
+        private static AutomationElement element = null;
         private static Microsoft.Office.Interop.Excel.Application excel;
         private static Microsoft.Office.Interop.Excel.Workbook excelworkBook;
         private static Microsoft.Office.Interop.Excel.Worksheet excelSheet;
         private static Microsoft.Office.Interop.Excel.Range excelCellrange;
+       
 
         static void Main(string[] args)
         {
-            /**** set console configurations ****/
-            Console.WindowHeight = 50;
-            Console.WindowWidth = 150;
-            Console.BufferHeight = 999;
-            Console.BufferWidth = 200;
+            TimeSpan startTime = new TimeSpan(19,28,0);
+            TimeSpan interval = new TimeSpan(0,5,0);
+            TimeSpan endTime = startTime.Add(interval);
+            bool isGenerate = false;
+            TimeSpan currentTime;
 
-            Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
+            /**** set console configurations ****/
+            //Console.WindowHeight = 50;
+            //Console.WindowWidth = 150;
+            //Console.BufferHeight = 999;
+            //Console.BufferWidth = 200;
+
+            //Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
             definePackageList();
 
-            /**** start listner ****/
+            /**** start focus listner ****/
             Automation.AddAutomationFocusChangedEventHandler(OnFocusChangedHandler);
 
+            /**** start screen lock listner ****/
+            SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SysEventsCheck);
+
             /**** wait for enter key ****/
+            //while (true)
+            //{
+            //    ConsoleKeyInfo c = Console.ReadKey();
+            //    if (c.Key == ConsoleKey.Enter)
+            //        generateExcel();
+            //}
+
             while (true)
             {
-                ConsoleKeyInfo c = Console.ReadKey();
-                if (c.Key == ConsoleKey.Enter)
-                    generateExcel();
+                currentTime = DateTime.Now.TimeOfDay;
+                if (currentTime > startTime && currentTime < endTime)
+                {
+                    if (isGenerate == false)
+                    {
+                        generateExcel();
+                        isGenerate = true;
+                    }
+                }
+                else
+                    isGenerate = false;
             }
-            
+
         }
 
         private static void OnFocusChangedHandler(object src, AutomationFocusChangedEventArgs args)
@@ -48,7 +76,7 @@ namespace EventChangeMonitor
             try
             {
                 DateTime startTime = DateTime.Now;
-                AutomationElement element = src as AutomationElement;
+                element = src as AutomationElement;
                 if (element != null)
                 {
                     /*** get the main window title of focus element ***/
@@ -94,11 +122,11 @@ namespace EventChangeMonitor
                     activityList.Add(mainWindowTitle, currentActivity);
                     lastWindowName = mainWindowTitle;
                 }
-                Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-                foreach (KeyValuePair<string, Activity> pair in activityList)
-                {
-                    Console.WriteLine(pair.Value.processName.PadRight(30) + pair.Value.duration.ToString().PadRight(20) + pair.Key);
-                }
+                //Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                //foreach (KeyValuePair<string, Activity> pair in activityList)
+                //{
+                //    Console.WriteLine(pair.Value.processName.PadRight(30) + pair.Value.duration.ToString().PadRight(20) + pair.Key);
+                //}
             }
             catch (Exception e)
             {
@@ -118,6 +146,8 @@ namespace EventChangeMonitor
             packageList.Add("explorer");
             packageList.Add("firefox");
             packageList.Add("iexplore");
+            packageList.Add("taskmgr");
+            packageList.Add("OUTLOOK");
             packageList.Add("");
 
         }
@@ -154,9 +184,9 @@ namespace EventChangeMonitor
             excelworkBook.SaveAs(filePath); 
             excelworkBook.Close();
             excel.Quit();
-            Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-            Console.WriteLine("Export to Excel");
-            System.Diagnostics.Process.Start(filePath);
+            //Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            //Console.WriteLine("Export to Excel");
+            //System.Diagnostics.Process.Start(filePath);
         }
 
 
@@ -170,5 +200,25 @@ namespace EventChangeMonitor
             }
         }
 
+
+        private static void SysEventsCheck(object sender, SessionSwitchEventArgs e)
+        {
+            switch (e.Reason)
+            {
+                case SessionSwitchReason.SessionLock:
+                    //Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                    //Console.WriteLine("Lock Encountered");
+                    OnFocusChangedHandler(element, null);
+                    lastWindowName = null;
+                    break;
+                case SessionSwitchReason.ConsoleDisconnect:
+                    //Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+                    //Console.WriteLine("Lock Encountered");
+                    OnFocusChangedHandler(element, null);
+                    lastWindowName = null;
+                    break;
+                //case SessionSwitchReason.SessionUnlock: Console.WriteLine("UnLock Encountered"); break;
+            }
+        }
     }
 }
