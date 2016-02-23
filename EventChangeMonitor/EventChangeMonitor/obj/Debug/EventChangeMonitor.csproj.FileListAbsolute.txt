@@ -17,3 +17,5 @@ C:\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\EventChangeMoni
 C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.exe
 C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.pdb
 C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csprojResolveAssemblyReference.cache
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.Properties.Resources.resources
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csproj.GenerateResource.Cache
