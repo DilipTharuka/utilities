@@ -19,3 +19,11 @@ C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMoni
 C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csprojResolveAssemblyReference.cache
 C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.Properties.Resources.resources
 C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csproj.GenerateResource.Cache
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csprojResolveAssemblyReference.cache
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\EventChangeMonitor.csproj.GenerateResource.Cache
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.exe.config
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.exe
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.pdb
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.Properties.Resources.resources
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.exe
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.pdb

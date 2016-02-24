@@ -9,8 +9,11 @@ using System.Data;
 using Microsoft.Win32;
 using System.Windows.Forms;
 using System.Threading;
+using System.IO;
+using System.Reflection;
+using System.DirectoryServices.AccountManagement;
 
-namespace EventChangeMonitor
+namespace ActivityMonitor
 {
     class Program 
     {
@@ -29,15 +32,15 @@ namespace EventChangeMonitor
         static void Main(string[] args)
         {
             RegisterInStartup();
-            TimeSpan startTime = new TimeSpan(22,53,0);
-            TimeSpan endTime = new TimeSpan(22,55,0);
-            TimeSpan interval = new TimeSpan(0,1,0);
-            
+            TimeSpan startTime = new TimeSpan(9, 0, 0);
+            TimeSpan endTime = new TimeSpan(18, 56, 0);
+            TimeSpan interval = new TimeSpan(0, 1, 0);
+
             /**** set console configurations ****/
             Console.WindowHeight = 50;
             Console.WindowWidth = 150;
-            Console.BufferHeight = 999;
-            Console.BufferWidth = 200;
+            Console.BufferHeight = 9999;
+            Console.BufferWidth = 300;
 
             Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
             definePackageList();
@@ -59,24 +62,13 @@ namespace EventChangeMonitor
             //        generateExcel();
             //}
 
-            //while (true)
-            //{
-            //    currentTime = DateTime.Now.TimeOfDay;
-            //    if (currentTime > startTime && currentTime < endTime)
-            //    {
-            //        if (isGenerate == false)
-            //        {
-            //            generateExcel();
-            //            isGenerate = true;
-            //        }
-            //    }
-            //    else
-            //        isGenerate = false;
-            //}
+            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Count() > 1)
+                Process.GetCurrentProcess().Kill();
+            
 
         }
 
-        private static  void OnFocusChangedHandler(object src, AutomationFocusChangedEventArgs args)
+        private static void OnFocusChangedHandler(object src, AutomationFocusChangedEventArgs args)
         {
             try
             {
@@ -144,13 +136,13 @@ namespace EventChangeMonitor
         private static void definePackageList()
         {
             packageList.Add("eclipse");
-            packageList.Add("chrome");
+            //packageList.Add("chrome");
             packageList.Add("WDExpress");
             packageList.Add("Brackets");
             packageList.Add("notepad++");
             packageList.Add("netbeans64");
             packageList.Add("explorer");
-            packageList.Add("firefox");
+            //packageList.Add("firefox");
             packageList.Add("iexplore");
             packageList.Add("taskmgr");
             packageList.Add("OUTLOOK");
@@ -166,7 +158,7 @@ namespace EventChangeMonitor
             excel.DisplayAlerts = false;
             excelworkBook = excel.Workbooks.Add(Type.Missing);
             excelSheet = (Microsoft.Office.Interop.Excel.Worksheet)excelworkBook.ActiveSheet;
-            excelSheet.Name = "Test work sheet";
+            excelSheet.Name = "Activity List";
             excelSheet.Cells[1, 1] = "Process Name";
             excelSheet.Cells[1, 2] = "Duration";
             excelSheet.Cells[1, 3] = "Main Window Title";
@@ -187,8 +179,10 @@ namespace EventChangeMonitor
 
             excelCellrange = excelSheet.Range[excelSheet.Cells[1, 1], excelSheet.Cells[1, 3]];
             FormattingExcelCells(excelCellrange, "#000099", System.Drawing.Color.White, true);
-            String filePath = "C:\\Users\\" + Environment.UserName + "\\Desktop\\ActivityList-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".xlsx";
-            excelworkBook.SaveAs(filePath);
+            //UserPrincipal.Current.DisplayName
+            String filePath = "C:\\Users\\" + Environment.UserName + "\\Desktop\\ActivityList-" + Environment.UserName + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".xlsx";
+            excelworkBook.SaveAs(filePath, Type.Missing, Type.Missing, Type.Missing, true, false, Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+            //excelworkBook.SaveAs(filePath);
             excelworkBook.Close();
             excel.Quit();
             Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -248,13 +242,14 @@ namespace EventChangeMonitor
                 else
                     isGenerate = false;
 
-                if (currentTime > startTime && currentTime < startTime + interval)
+                if (currentTime > startTime && currentTime < endTime)
                 {
                     if (isReset == false)
                     {
                         resetAll();
                         isReset = true;
                         Automation.AddAutomationFocusChangedEventHandler(OnFocusChangedHandler);
+                        //Automation.AddStructureChangedEventHandler(eventdetect);
                         Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         Console.WriteLine("start listner");
                     }

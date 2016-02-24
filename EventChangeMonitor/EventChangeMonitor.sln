@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventChangeMonitor", "EventChangeMonitor\EventChangeMonitor.csproj", "{F35935E8-19B9-48CC-8C03-D90F97D18ADE}"
+# Visual Studio Express 2012 for Windows Desktop
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActivityMonitor", "EventChangeMonitor\ActivityMonitor.csproj", "{F35935E8-19B9-48CC-8C03-D90F97D18ADE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
