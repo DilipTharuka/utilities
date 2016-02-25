@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ActivityMonitor
 {
-    class Activity
+    class Activity : ICloneable
     {
         public DateTime startTime { get; set; }
         public DateTime endTime { get; set; }
@@ -18,5 +18,11 @@ namespace ActivityMonitor
         {
             this.duration += endTime.Subtract(startTime);
         }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+
     }
 }
