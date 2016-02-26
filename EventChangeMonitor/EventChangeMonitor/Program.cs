@@ -31,46 +31,52 @@ namespace ActivityMonitor
         private static Microsoft.Office.Interop.Excel.Workbook excelworkBook;
         private static Microsoft.Office.Interop.Excel.Worksheet excelSheetAll;
         private static Microsoft.Office.Interop.Excel.Worksheet excelSheetPackaged;
-        private static Microsoft.Office.Interop.Excel.Worksheet excelSheetChart;
+        private static Microsoft.Office.Interop.Excel.Worksheet excelSheetBucketed;
         private static Microsoft.Office.Interop.Excel.Range excelCellrange;
+        private static Microsoft.Office.Interop.Excel.Range chartRange;
+        private static Microsoft.Office.Interop.Excel.ChartObjects chartObjects;
+        private static Microsoft.Office.Interop.Excel.ChartObject chartObject;
+        private static Microsoft.Office.Interop.Excel.Chart chart;
         
         static void Main(string[] args)
         {
-            RegisterInStartup();
-            TimeSpan startTime = new TimeSpan(9, 0, 0);
-            TimeSpan endTime = new TimeSpan(18,39,0);
-            TimeSpan interval = new TimeSpan(0, 1, 0);
 
-            /**** set console configurations ****/
-            Console.WindowHeight = 50;
-            Console.WindowWidth = 150;
-            Console.BufferHeight = 9999;
-            Console.BufferWidth = 300;
+            DBConnector.getInstance().createNewBucket("Development");
+            Console.WriteLine("Done !");
+            Console.ReadKey();
 
-            Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
-            definePackageList();
-            defineBuckets();
+            //RegisterInStartup();
+            //TimeSpan startTime = new TimeSpan(9, 0, 0);
+            //TimeSpan endTime = new TimeSpan(17,0, 0);
+            //TimeSpan interval = new TimeSpan(0, 1, 0);
 
-            ///**** start focus listner ****/
-            //Automation.AddAutomationFocusChangedEventHandler(OnFocusChangedHandler);
+            ///**** set console configurations ****/
+            //Console.WindowHeight = 50;
+            //Console.WindowWidth = 150;
+            //Console.BufferHeight = 9999;
+            //Console.BufferWidth = 300;
 
-            /**** start screen lock listner ****/
-            SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SysEventsCheck);
+            //Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
+            //definePackageList();
+            //defineBuckets();
 
-            Thread t = new Thread(() => botSchedular(startTime, endTime, interval));
-            t.Start();
+            ///**** start screen lock listner ****/
+            //SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SysEventsCheck);
 
-            ///**** wait for enter key ****/
-            //while (true)
-            //{
-            //    ConsoleKeyInfo c = Console.ReadKey();
-            //    if (c.Key == ConsoleKey.Enter)
-            //        generateExcel();
-            //}
+            //Thread t = new Thread(() => botSchedular(startTime, endTime, interval));
+            //t.Start();
 
-            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Count() > 1)
-                Process.GetCurrentProcess().Kill();
-            
+            /////**** wait for enter key ****/
+            ////while (true)
+            ////{
+            ////    ConsoleKeyInfo c = Console.ReadKey();
+            ////    if (c.Key == ConsoleKey.Enter)
+            ////        generateExcel();
+            ////}
+
+            //if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Count() > 1)
+            //    Process.GetCurrentProcess().Kill();
+
 
         }
 
@@ -157,13 +163,15 @@ namespace ActivityMonitor
 
         public static void generateExcel()
         {
+            /******************** create a workbook *************************/
             excel = new Microsoft.Office.Interop.Excel.Application();
             excel.Visible = false;
             excel.DisplayAlerts = false;
             excelworkBook = excel.Workbooks.Add(Type.Missing);
 
+            /********************* create new sheet (Activity List) ***************************/
             excelSheetAll = (Microsoft.Office.Interop.Excel.Worksheet)excelworkBook.ActiveSheet;
-            excelSheetAll.Name = "All Activity List";
+            excelSheetAll.Name = "Activity List";
 
             int row = 1;
             int tb1_start_x = row;
@@ -193,7 +201,7 @@ namespace ActivityMonitor
             excelCellrange = excelSheetAll.Range[excelSheetAll.Cells[tb1_start_x, tb1_start_y], excelSheetAll.Cells[tb1_start_x, tb1_end_y]];
             FormattingExcelCells(excelCellrange, "#000099", System.Drawing.Color.White, true);
 
-
+            /*************************** create new sheet (Packaged Activity List) ****************************/
             excelSheetPackaged = (Microsoft.Office.Interop.Excel.Worksheet)excelworkBook.Worksheets.Add();
             excelSheetPackaged.Name = "Packaged Activity List";
             row = 1;
@@ -224,33 +232,79 @@ namespace ActivityMonitor
             excelCellrange = excelSheetPackaged.Range[excelSheetPackaged.Cells[tb2_start_x, tb2_start_y], excelSheetPackaged.Cells[tb2_start_x, tb2_end_y]];
             FormattingExcelCells(excelCellrange, "#000099", System.Drawing.Color.White, true);
 
-
-            excelSheetChart = (Microsoft.Office.Interop.Excel.Worksheet)excelworkBook.Worksheets.Add();
-            excelSheetChart.Name = "Charts";
-
-            Microsoft.Office.Interop.Excel.Range chartRange;
-
-            Microsoft.Office.Interop.Excel.ChartObjects chartObjects = (Microsoft.Office.Interop.Excel.ChartObjects)excelSheetChart.ChartObjects(Type.Missing);
-            Microsoft.Office.Interop.Excel.ChartObject chartObject = (Microsoft.Office.Interop.Excel.ChartObject)chartObjects.Add(10, 80, 450, 400);
-            Microsoft.Office.Interop.Excel.Chart chart = chartObject.Chart;
+            chartObjects = (Microsoft.Office.Interop.Excel.ChartObjects)excelSheetPackaged.ChartObjects(Type.Missing);
+            chartObject = (Microsoft.Office.Interop.Excel.ChartObject)chartObjects.Add(220, 0, 400, 300);
+            chart = chartObject.Chart;
+            chart.HasTitle = true;
+            chart.ChartTitle.Text = "Packaged Activity List";
 
             chartRange = excelSheetPackaged.get_Range("A" + tb2_start_x, "B" + tb2_end_x);
             chart.SetSourceData(chartRange, System.Reflection.Missing.Value);
             chart.ChartType = Microsoft.Office.Interop.Excel.XlChartType.xlPie;
 
-            chart.Legend.Position = Microsoft.Office.Interop.Excel.XlLegendPosition.xlLegendPositionRight;
-
-
-            chartObjects = (Microsoft.Office.Interop.Excel.ChartObjects)excelSheetChart.ChartObjects(Type.Missing);
-            chartObject = (Microsoft.Office.Interop.Excel.ChartObject)chartObjects.Add(510, 80, 450, 400);
+            chartObjects = (Microsoft.Office.Interop.Excel.ChartObjects)excelSheetPackaged.ChartObjects(Type.Missing);
+            chartObject = (Microsoft.Office.Interop.Excel.ChartObject)chartObjects.Add(220, 320, 400, 300);
             chart = chartObject.Chart;
+            chart.HasTitle = true;
+            chart.ChartTitle.Text = "Packaged Activity List";
 
             chartRange = excelSheetPackaged.get_Range("A" + tb2_start_x, "B" + tb2_end_x);
             chart.SetSourceData(chartRange, System.Reflection.Missing.Value);
             chart.ChartType = Microsoft.Office.Interop.Excel.XlChartType.xlColumnClustered;
 
-            chart.Legend.Position = Microsoft.Office.Interop.Excel.XlLegendPosition.xlLegendPositionRight;
+            /************************* create new sheet (Bucketed Activity List) ******************************/
+            excelSheetBucketed = (Microsoft.Office.Interop.Excel.Worksheet)excelworkBook.Worksheets.Add();
+            excelSheetBucketed.Name = "Bucketed Activity List";
 
+            row = 1;
+            int tb3_start_x = row;
+            int tb3_start_y = 1;
+            excelSheetBucketed.Cells[row, 1] = "Bucket Name";
+            excelSheetBucketed.Cells[row, 2] = "Duration";
+
+            row++;
+            foreach (KeyValuePair<string, TimeSpan> pair in bucketedTime)
+            {
+                excelSheetBucketed.Cells[row, 1] = pair.Key;
+                excelSheetBucketed.Cells[row, 2] = pair.Value.ToString("g");
+                row++;
+            }
+
+            int tb3_end_x = row - 1;
+            int tb3_end_y = 2;
+
+            excelCellrange = excelSheetBucketed.Range[excelSheetBucketed.Cells[tb3_start_x, tb3_start_y], excelSheetBucketed.Cells[tb3_end_x, tb3_end_y]];
+
+            excelCellrange.NumberFormat = "hh:mm:ss.000";
+            excelCellrange.EntireColumn.AutoFit();
+            border = excelCellrange.Borders;
+            border.LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
+            border.Weight = 2d;
+
+            excelCellrange = excelSheetBucketed.Range[excelSheetBucketed.Cells[tb3_start_x, tb3_start_y], excelSheetBucketed.Cells[tb3_start_x, tb3_end_y]];
+            FormattingExcelCells(excelCellrange, "#000099", System.Drawing.Color.White, true);
+
+            chartObjects = (Microsoft.Office.Interop.Excel.ChartObjects)excelSheetBucketed.ChartObjects(Type.Missing);
+            chartObject = (Microsoft.Office.Interop.Excel.ChartObject)chartObjects.Add(220, 0, 400, 300);
+            chart = chartObject.Chart;
+            chart.HasTitle = true;
+            chart.ChartTitle.Text = "Buckted Activity List";
+            
+            chartRange = excelSheetBucketed.get_Range("A" + tb3_start_x, "B" + tb3_end_x);
+            chart.SetSourceData(chartRange, System.Reflection.Missing.Value);
+            chart.ChartType = Microsoft.Office.Interop.Excel.XlChartType.xlPie;
+
+            chartObjects = (Microsoft.Office.Interop.Excel.ChartObjects)excelSheetBucketed.ChartObjects(Type.Missing);
+            chartObject = (Microsoft.Office.Interop.Excel.ChartObject)chartObjects.Add(220, 320, 400, 300);
+            chart = chartObject.Chart;
+            chart.HasTitle = true;
+            chart.ChartTitle.Text = "Buckted Activity List"; 
+
+            chartRange = excelSheetBucketed.get_Range("A" + tb3_start_x, "B" + tb3_end_x);
+            chart.SetSourceData(chartRange, System.Reflection.Missing.Value);
+            chart.ChartType = Microsoft.Office.Interop.Excel.XlChartType.xlColumnClustered;
+
+            /*************** save excel *******************/
 
             //UserPrincipal.Current.DisplayName
             String filePath = "C:\\Users\\" + Environment.UserName + "\\Desktop\\ActivityList-" + Environment.UserName + "-" + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".xlsx";
@@ -273,7 +327,6 @@ namespace ActivityMonitor
                 range.Font.Bold = IsFontbool;
             }
         }
-
 
         private static void SysEventsCheck(object sender, SessionSwitchEventArgs e)
         {
@@ -372,12 +425,11 @@ namespace ActivityMonitor
                     packagedActivityList.Add(pair.Value.processName, (Activity)pair.Value.Clone());
             }
 
-
-            Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-            foreach (KeyValuePair<string, Activity> pair in packagedActivityList)
-            {
-                Console.WriteLine(pair.Key.PadRight(30) + pair.Value.duration.ToString().PadRight(20));
-            }
+            //Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            //foreach (KeyValuePair<string, Activity> pair in packagedActivityList)
+            //{
+            //    Console.WriteLine(pair.Key.PadRight(30) + pair.Value.duration.ToString().PadRight(20));
+            //}
 
         }
 
@@ -389,21 +441,21 @@ namespace ActivityMonitor
             researchList.Add("iexplore");
 
             List<string> developmentList = new List<string>();
-            researchList.Add("notepad++");
-            researchList.Add("Brackets");
-            researchList.Add("netbeans64");
-            researchList.Add("eclipse");
-            researchList.Add("cmd");
-            researchList.Add("sh");
-            researchList.Add("MySQLWorkbench");
-            researchList.Add("java");
-            researchList.Add("mintty");
-            researchList.Add("idea");
-            researchList.Add("TortoiseGitProc");
-            researchList.Add("dwm");
-            researchList.Add("javaw");
-            researchList.Add("SourceTree");
-            researchList.Add("WDExpress");
+            developmentList.Add("notepad++");
+            developmentList.Add("Brackets");
+            developmentList.Add("netbeans64");
+            developmentList.Add("eclipse");
+            developmentList.Add("cmd");
+            developmentList.Add("sh");
+            developmentList.Add("MySQLWorkbench");
+            developmentList.Add("java");
+            developmentList.Add("mintty");
+            developmentList.Add("idea");
+            developmentList.Add("TortoiseGitProc");
+            developmentList.Add("dwm");
+            developmentList.Add("javaw");
+            developmentList.Add("SourceTree");
+            developmentList.Add("WDExpress");
 
 
             List<string> communicationList = new List<string>();
@@ -411,12 +463,12 @@ namespace ActivityMonitor
             communicationList.Add("lync");
 
             List<string> documentationList = new List<string>();
-            researchList.Add("EXCEL");
-            researchList.Add("WINWORD");
-            researchList.Add("POWERPNT");
-            researchList.Add("notepad");
-            researchList.Add("AcroRd32");
-            researchList.Add("StikyNot");
+            documentationList.Add("EXCEL");
+            documentationList.Add("WINWORD");
+            documentationList.Add("POWERPNT");
+            documentationList.Add("notepad");
+            documentationList.Add("AcroRd32");
+            documentationList.Add("StikyNot");
 
             List<string> otherList = new List<string>();
             otherList.Add("taskmgr");
@@ -425,13 +477,13 @@ namespace ActivityMonitor
             otherList.Add("SnippingTool");
             otherList.Add("WinRAR");
             otherList.Add("7zG");
+            otherList.Add("explorer");
 
             buckets.Add("Research", researchList);
             buckets.Add("Development", developmentList);
             buckets.Add("Communication", communicationList);
             buckets.Add("Documentation", documentationList);
             buckets.Add("Other", otherList);
-
         }
 
         private static void calculateBucketTime()
@@ -446,24 +498,23 @@ namespace ActivityMonitor
             {
                 foreach (KeyValuePair<string, List<string>> bucket in buckets)
                 {
-                    //Console.WriteLine(process.Key);
-                    //Console.WriteLine(bucket.Value.ToString());
                     if (bucket.Value.Contains(packagedActivity.Key))
                     {
-                        Console.WriteLine(packagedActivity.Key + " " + bucket.Key);
                         bucketedTime[bucket.Key] = bucketedTime[bucket.Key] + packagedActivity.Value.duration;
-                        //break;
+                        break;
                     }
                 }
             }
 
-            Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-            foreach (KeyValuePair<string, TimeSpan> pair in bucketedTime)
-            {
-                Console.WriteLine(pair.Key.PadRight(30) + pair.Value.ToString());
+            //Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            //foreach (KeyValuePair<string, TimeSpan> pair in bucketedTime)
+            //{
+            //    Console.WriteLine(pair.Key.PadRight(30) + pair.Value.ToString());
 
-            }
+            //}
 
         }
+
+
     }
 }
