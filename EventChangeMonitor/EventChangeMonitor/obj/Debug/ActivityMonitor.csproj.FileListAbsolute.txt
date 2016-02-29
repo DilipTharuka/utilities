@@ -7,3 +7,11 @@ C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMon
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.csproj.GenerateResource.Cache
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.exe
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.pdb
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.exe.config
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.exe
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.pdb
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.Properties.Resources.resources
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.csproj.GenerateResource.Cache
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.exe
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.pdb
+C:\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.csprojResolveAssemblyReference.cache
