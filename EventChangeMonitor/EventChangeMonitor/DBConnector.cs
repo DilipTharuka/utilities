@@ -1,55 +1,73 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using Orient.Client;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Orient.Client;
 
-//namespace ActivityMonitor
-//{
-//    class DBConnector
-//    {
+namespace ActivityMonitor
+{
+    class DBConnector
+    {
+        private static DBConnector dbConnector = null;
+        private static ODatabase oDatabase = null;
 
-//        private static DBConnector dbConnector = null;
-//        private static ODatabase oDatabase = null;
+        private DBConnector()
+        {
+            OClient.CreateDatabasePool("cmddtkarunathil", 2424, "ActivityMonitor", ODatabaseType.Graph, "admin", "admin", 10, "ActivityMonitorAlias");
+            oDatabase = new ODatabase("ActivityMonitorAlias");
+        }
 
-//        private DBConnector()
-//        {
-//            OClient.CreateDatabasePool("localhost", 2424, "ActivityMonitor", ODatabaseType.Graph, "admin", "admin", 10, "ActivityMonitorAlias");
-//            oDatabase = new ODatabase("ActivityMonitorAlias");
-//        }
+        public static DBConnector getInstance()
+        {
+            if (dbConnector == null)
+                dbConnector = new DBConnector();
+            return dbConnector;
+        }
 
-//        //using(ODatabase database = new ODatabase("ModelTestDBAlias"))
-//        //{
-//        //    // prerequisites
-//        //    database
-//        //      .Create.Class("TestClass")
-//        //      .Extends<OVertex>()
-//        //      .Run();
+        public void addAppToBucket(string bucketName, string appName)
+        {
+            Console.WriteLine("UPDATE Bucket ADD applications='" + appName + "' WHERE name = '" + bucketName + "'");
+            oDatabase.Command("UPDATE Bucket ADD applications='"+appName+"' WHERE name = '"+bucketName+"'");    
+        }
 
-//        //    OVertex createdVertex = database
-//        //      .Create.Vertex("TestClass")
-//        //      .Set("foo", "foo string value")
-//        //      .Set("bar", 12345)
-//        //      .Run();
-//        //}
+        public void createNewBucket(string bucketName)
+        {
+            oDatabase.Command("INSERT INTO Bucket(name) VALUES('" + bucketName + "')");
+        }
 
-//        public static DBConnector getInstance()
-//        {
-//            if (dbConnector == null)
-//                dbConnector = new DBConnector();
-//            return dbConnector;
-//        }
+        public Dictionary<string, List<string>> getBuckets()
+        {
+            Dictionary<string, List<string>> buckets = new Dictionary<string, List<string>>();
+            List<ODocument> oDocuments =  oDatabase.Query("SELECT FROM Bucket");
+            foreach (ODocument oDocument in oDocuments)
+            {
+                buckets.Add(oDocument.GetField<String>("name"), oDocument.GetField<List<String>>("applications"));
+            }
 
-//        public void addAppToBucket(string bucketName,string appName)
-//        {
-//            oDatabase.Query("");
-//        }
+            //foreach (KeyValuePair<string, List<string>> pair in buckets)
+            //{
+            //    Console.WriteLine(pair.Key);
+            //    foreach (string item in pair.Value)
+            //    {
+            //        Console.Write(item + " ");
+            //    }
+            //}
 
-//        public void createNewBucket(string bucketName)
-//        {
-//            oDatabase.Command("INSERT INTO Bucket(name) VALUES('" + bucketName + "')");
-//        }      
-        
-//    }
-//}
+            return buckets;
+        }
+
+        public List<string> getPackages()
+        {
+            List<string> packages = new List<string>();
+            List<ODocument> oDocuments = oDatabase.Query("SELECT FROM Package");
+            foreach (ODocument oDocument in oDocuments)
+            {
+                packages.Add(oDocument.GetField<String>("name"));
+            }
+            return packages;
+
+        }
+
+    }
+}

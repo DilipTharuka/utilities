@@ -12,18 +12,19 @@ using System.Threading;
 using System.IO;
 using System.Reflection;
 using System.DirectoryServices.AccountManagement;
-using System.Configuration.Install; 
+using System.Configuration.Install;
 
 namespace ActivityMonitor
 {
-    class Program 
+    class Program
     {
         private static Dictionary<string, Activity> activityList = new Dictionary<string, Activity>();
         private static List<String> packages = new List<string>();
         private static Dictionary<string, TimeSpan> packagedList = new Dictionary<string, TimeSpan>();
         private static Dictionary<string, List<string>> buckets = new Dictionary<string, List<string>>();
         private static Dictionary<string, TimeSpan> bucketedList = new Dictionary<string, TimeSpan>();
-        private static Thread io = new Thread(() => Serialize());
+        private static string dir;
+        private static Thread io;
 
         private static string lastWindowName = null;
         private static AutomationElement element = null;
@@ -41,28 +42,30 @@ namespace ActivityMonitor
         private static Microsoft.Office.Interop.Excel.ChartObjects chartObjects;
         private static Microsoft.Office.Interop.Excel.ChartObject chartObject;
         private static Microsoft.Office.Interop.Excel.Chart chart;
-        
+
         static void Main(string[] args)
         {
 
-            //DBConnector.getInstance().createNewBucket("Development");
-            //Console.WriteLine("Done !");
-            //Console.ReadKey();
-            //installAsService();
-            //RegisterInStartup();
+            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Count() > 1)
+                Process.GetCurrentProcess().Kill();
+
+            RegisterInStartup();
+
+            /** define backup dir**/
+            dir = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\AM\\";
+            Directory.CreateDirectory(dir);
+
             TimeSpan startTime = new TimeSpan(9, 0, 0);
-            TimeSpan endTime = new TimeSpan(23, 32, 0);
+            TimeSpan endTime = new TimeSpan(18, 57, 0);
             TimeSpan interval = new TimeSpan(0, 1, 0);
 
             /**** set console configurations ****/
-            Console.WindowHeight = 50;
-            Console.WindowWidth = 150;
-            Console.BufferHeight = 9999;
-            Console.BufferWidth = 300;
+            //Console.WindowHeight = 50;
+            //Console.WindowWidth = 150;
+            //Console.BufferHeight = 9999;
+            //Console.BufferWidth = 300;
 
             Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
-            definePackages();
-            defineBuckets();
 
             /**** start screen lock listner ****/
             SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SysEventsCheck);
@@ -70,18 +73,15 @@ namespace ActivityMonitor
             Thread schedular = new Thread(() => botSchedular(startTime, endTime, interval));
             schedular.Start();
 
-            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Count() > 1)
-                Process.GetCurrentProcess().Kill();
+            ///**** wait for enter key ****/
+            //while (true)
+            //{
+            //    ConsoleKeyInfo c = Console.ReadKey();
+            //    if (c.Key == ConsoleKey.Enter)
+            //        generateExcel();
+            //}
 
-            /**** wait for enter key ****/
-            while (true)
-            {
-                ConsoleKeyInfo c = Console.ReadKey();
-                if (c.Key == ConsoleKey.Enter)
-                    generateExcel();
-            }
-
-
+       
         }
 
         private static void OnFocusChangedHandler(object src, AutomationFocusChangedEventArgs args)
@@ -133,7 +133,6 @@ namespace ActivityMonitor
 
                     }
                     currentActivity.startTime = startTime;
-                    //activityList.Add(mainWindowTitle, currentActivity);
                     lastWindowName = mainWindowTitle;
                 }
                 Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -144,25 +143,8 @@ namespace ActivityMonitor
             }
             catch (Exception e)
             {
-                return;
+                return ;
             }
-        }
-
-
-        private static void definePackages()
-        {
-            packages.Add("eclipse");
-            //packageList.Add("chrome");
-            packages.Add("WDExpress");
-            packages.Add("Brackets");
-            packages.Add("notepad++");
-            packages.Add("netbeans64");
-            packages.Add("explorer");
-            //packageList.Add("firefox");
-            packages.Add("iexplore");
-            packages.Add("taskmgr");
-            packages.Add("OUTLOOK");
-            packages.Add("");
         }
 
         public static void generateExcel()
@@ -192,7 +174,7 @@ namespace ActivityMonitor
                 row++;
             }
 
-            int tb1_end_x = row-1;
+            int tb1_end_x = row - 1;
             int tb1_end_y = 3;
 
             excelCellrange = excelSheetAll.Range[excelSheetAll.Cells[tb1_start_x, tb1_start_y], excelSheetAll.Cells[tb1_end_x, tb1_end_y]];
@@ -229,7 +211,7 @@ namespace ActivityMonitor
 
             excelCellrange.NumberFormat = "hh:mm:ss.000";
             excelCellrange.EntireColumn.AutoFit();
-            border= excelCellrange.Borders;
+            border = excelCellrange.Borders;
             border.LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
             border.Weight = 2d;
 
@@ -293,7 +275,7 @@ namespace ActivityMonitor
             chart = chartObject.Chart;
             chart.HasTitle = true;
             chart.ChartTitle.Text = "Buckted Activity List";
-            
+
             chartRange = excelSheetBucketed.get_Range("A" + tb3_start_x, "B" + tb3_end_x);
             chart.SetSourceData(chartRange, System.Reflection.Missing.Value);
             chart.ChartType = Microsoft.Office.Interop.Excel.XlChartType.xlPie;
@@ -302,7 +284,7 @@ namespace ActivityMonitor
             chartObject = (Microsoft.Office.Interop.Excel.ChartObject)chartObjects.Add(220, 320, 400, 300);
             chart = chartObject.Chart;
             chart.HasTitle = true;
-            chart.ChartTitle.Text = "Buckted Activity List"; 
+            chart.ChartTitle.Text = "Buckted Activity List";
 
             chartRange = excelSheetBucketed.get_Range("A" + tb3_start_x, "B" + tb3_end_x);
             chart.SetSourceData(chartRange, System.Reflection.Missing.Value);
@@ -365,10 +347,10 @@ namespace ActivityMonitor
                         isReset = true;
                         Deserialize();
                         Automation.AddAutomationFocusChangedEventHandler(OnFocusChangedHandler);
-                        io.Start();
-                        //Automation.AddStructureChangedEventHandler(eventdetect);
                         Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         Console.WriteLine("start listner");
+                        io = new Thread(() => Serialize());
+                        io.Start();
                     }
                 }
                 else
@@ -384,16 +366,18 @@ namespace ActivityMonitor
                         Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         Console.WriteLine("stop listner");
                         Thread.Sleep(100);
+                        packages = DBConnector.getInstance().getPackages();
+                        buckets = DBConnector.getInstance().getBuckets();
                         generatePackageList();
+                        checkProcess();
                         generateBucketList();
                         generateExcel();
                         isGenerate = true;
+                        io.Abort();
                     }
                 }
                 else
                     isGenerate = false;
-
-                
 
                 Thread.Sleep(1000);
             }
@@ -418,6 +402,8 @@ namespace ActivityMonitor
         private static void resetMonitor()
         {
             activityList.Clear();
+            packagedList.Clear();
+            bucketedList.Clear();
             lastWindowName = null;
         }
 
@@ -441,67 +427,12 @@ namespace ActivityMonitor
 
         }
 
-        private static void defineBuckets()
-        {
-            List<string> researchList = new List<string>();
-            researchList.Add("chrome");
-            researchList.Add("firefox");
-            researchList.Add("iexplore");
-
-            List<string> developmentList = new List<string>();
-            developmentList.Add("notepad++");
-            developmentList.Add("Brackets");
-            developmentList.Add("netbeans64");
-            developmentList.Add("eclipse");
-            developmentList.Add("cmd");
-            developmentList.Add("sh");
-            developmentList.Add("MySQLWorkbench");
-            developmentList.Add("java");
-            developmentList.Add("mintty");
-            developmentList.Add("idea");
-            developmentList.Add("TortoiseGitProc");
-            developmentList.Add("dwm");
-            developmentList.Add("javaw");
-            developmentList.Add("SourceTree");
-            developmentList.Add("WDExpress");
-
-
-            List<string> communicationList = new List<string>();
-            communicationList.Add("OUTLOOK");
-            communicationList.Add("lync");
-
-            List<string> documentationList = new List<string>();
-            documentationList.Add("EXCEL");
-            documentationList.Add("WINWORD");
-            documentationList.Add("POWERPNT");
-            documentationList.Add("notepad");
-            documentationList.Add("AcroRd32");
-            documentationList.Add("StikyNot");
-
-            List<string> otherList = new List<string>();
-            otherList.Add("taskmgr");
-            otherList.Add("regedit");
-            otherList.Add("dllhost");
-            otherList.Add("SnippingTool");
-            otherList.Add("WinRAR");
-            otherList.Add("7zG");
-            otherList.Add("explorer");
-
-            buckets.Add("Research", researchList);
-            buckets.Add("Development", developmentList);
-            buckets.Add("Communication", communicationList);
-            buckets.Add("Documentation", documentationList);
-            buckets.Add("Other", otherList);
-        }
-
         private static void generateBucketList()
         {
-            bucketedList.Add("Research",new TimeSpan(0,0,0));
-            bucketedList.Add("Development", new TimeSpan(0, 0, 0));
-            bucketedList.Add("Communication", new TimeSpan(0, 0, 0));
-            bucketedList.Add("Documentation", new TimeSpan(0, 0, 0));
-            bucketedList.Add("Other", new TimeSpan(0, 0, 0));
-
+            foreach (KeyValuePair<string, List<string>> pair in buckets)
+            {
+                bucketedList.Add(pair.Key, new TimeSpan(0, 0, 0));             
+            }
             foreach (KeyValuePair<string, TimeSpan> packagedActivity in packagedList)
             {
                 foreach (KeyValuePair<string, List<string>> bucket in buckets)
@@ -513,40 +444,60 @@ namespace ActivityMonitor
                     }
                 }
             }
-
-            //Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-            //foreach (KeyValuePair<string, TimeSpan> pair in bucketedTime)
-            //{
-            //    Console.WriteLine(pair.Key.PadRight(30) + pair.Value.ToString());
-
-            //}
-
         }
 
-        private static void installAsService()
+
+        public static void checkProcess()
         {
-            ManagedInstallerClass.InstallHelper(new string[] { Assembly.GetExecutingAssembly().Location });
+            bool isFound;
+            foreach (KeyValuePair<string, TimeSpan> packagedActivity in packagedList)
+            {
+                isFound = false;
+                foreach (KeyValuePair<string, List<string>> bucket in buckets)
+                {
+                    if (bucket.Value.Contains(packagedActivity.Key))
+                    {
+                        isFound = true;
+                        break;
+                    }
+                }
+
+                if (isFound == false)
+                {
+                    FormUser formUser = new FormUser(packagedActivity.Key);
+                    //formUser.Show();
+                    Application.Run(formUser);
+                    while (formUser.getBucketName() == null)
+                    {
+                        Console.WriteLine("###");
+                        Thread.Sleep(100);
+                    }
+                    buckets[formUser.getBucketName()].Add(formUser.getAppName());
+                    //formUser.Close();
+                    Application.Exit();
+                }
+
+            }
         }
+
 
         public static void Serialize()
         {
-            
             while (true)
             {
-                var f_fileStream = new FileStream(DateTime.Now.ToString("yyyy-MM-dd") + ".amos", FileMode.Create, FileAccess.Write);
+                var f_fileStream = new FileStream(dir + DateTime.Now.ToString("yyyy-MM-dd") + ".amos", FileMode.Create, FileAccess.Write);
                 var f_binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 f_binaryFormatter.Serialize(f_fileStream, activityList);
                 f_fileStream.Close();
-                Thread.Sleep(60000);
+                Thread.Sleep(10000);
             }
-          
         }
 
         public static void Deserialize()
         {
-            if (File.Exists(DateTime.Now.ToString("yyyy-MM-dd") + ".amos"))
+            if (File.Exists(dir + DateTime.Now.ToString("yyyy-MM-dd") + ".amos"))
             {
-                var f_fileStream = File.OpenRead(DateTime.Now.ToString("yyyy-MM-dd") + ".amos");
+                var f_fileStream = File.OpenRead(dir + DateTime.Now.ToString("yyyy-MM-dd") + ".amos");
                 var f_binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 activityList = (Dictionary<string, Activity>)f_binaryFormatter.Deserialize(f_fileStream);
                 f_fileStream.Close();
