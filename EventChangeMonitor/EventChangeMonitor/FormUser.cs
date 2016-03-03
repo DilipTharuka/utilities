@@ -29,6 +29,7 @@ namespace ActivityMonitor
         {
             lblHeader.Text = "The process " + appName + " belongs to ?";
             Dictionary<string, List<string>> buckets = DBConnector.getInstance().getBuckets();
+            buckets.Remove("Neutral");
             String[] bucketList = new String[buckets.Count]; 
             
             int i = 0;
@@ -43,7 +44,7 @@ namespace ActivityMonitor
             {
                 radioButtons[j] = new RadioButton();
                 radioButtons[j].Text = bucketList[j];
-                radioButtons[j].Location = new System.Drawing.Point(20, 50 + j * 20);
+                radioButtons[j].Location = new System.Drawing.Point(30, 40 + j * 20);
                 this.pnlMain.Controls.Add(radioButtons[j]);
             }
         }
@@ -60,12 +61,14 @@ namespace ActivityMonitor
 
         private void btnOK_Click(object sender, EventArgs e)
         {
+            
             for (int i = 0; i < radioButtons.Length; i++)
             {
                 if (radioButtons[i].Checked)
                 {
-                    this.bucketName = radioButtons[i].Text;
-                    DBConnector.getInstance().addAppToBucket(bucketName, appName);
+                    Program.buckets[radioButtons[i].Text].Add(appName);
+                    this.Close();
+                    DBConnector.getInstance().addAppToBucket(radioButtons[i].Text, appName);
                     break;
                 }
             }

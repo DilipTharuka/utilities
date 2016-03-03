@@ -10,9 +10,9 @@ C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMon
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.exe
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\ActivityMonitor.pdb
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\bin\Debug\Orient.Client.dll
+C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.FormUser.resources
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.Properties.Resources.resources
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.csproj.GenerateResource.Cache
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.exe
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.pdb
-C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.FormUser.resources
 C:\Users\dtkarunathilaka\Desktop\git\utilities\EventChangeMonitor\EventChangeMonitor\obj\Debug\ActivityMonitor.csprojResolveAssemblyReference.cache

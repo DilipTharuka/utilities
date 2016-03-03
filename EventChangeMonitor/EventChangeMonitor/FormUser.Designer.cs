@@ -38,7 +38,8 @@
             // pnlMain
             // 
             this.pnlMain.AutoScroll = true;
-            this.pnlMain.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlMain.BackColor = System.Drawing.Color.Transparent;
+            this.pnlMain.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.pnlMain.Controls.Add(this.btnOK);
             this.pnlMain.Controls.Add(this.lblHeader);
             this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -78,7 +79,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FormUser";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "FormUser";
+            this.Text = "Activity Monitor";
             this.Load += new System.EventHandler(this.FormUser_Load);
             this.pnlMain.ResumeLayout(false);
             this.pnlMain.PerformLayout();
@@ -93,17 +94,6 @@
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.RadioButton[] radioButtons;
         private string appName = null;
-        private string bucketName = null;
-
-        public string getAppName()
-        {
-            return appName;
-        }
-
-        public string getBucketName()
-        {
-            return bucketName;
-        }
 
     }
 }

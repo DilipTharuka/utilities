@@ -21,7 +21,7 @@ namespace ActivityMonitor
         private static Dictionary<string, Activity> activityList = new Dictionary<string, Activity>();
         private static List<String> packages = new List<string>();
         private static Dictionary<string, TimeSpan> packagedList = new Dictionary<string, TimeSpan>();
-        private static Dictionary<string, List<string>> buckets = new Dictionary<string, List<string>>();
+        public static Dictionary<string, List<string>> buckets = new Dictionary<string, List<string>>();
         private static Dictionary<string, TimeSpan> bucketedList = new Dictionary<string, TimeSpan>();
         private static string dir;
         private static Thread io;
@@ -31,6 +31,10 @@ namespace ActivityMonitor
         private static bool isGenerate = false;
         private static bool isReset = false;
         private static TimeSpan currentTime;
+
+        private static TimeSpan startTime ;
+        private static TimeSpan endTime ;
+        private static TimeSpan interval ;
 
         private static Microsoft.Office.Interop.Excel.Application excel;
         private static Microsoft.Office.Interop.Excel.Workbook excelworkBook;
@@ -43,21 +47,16 @@ namespace ActivityMonitor
         private static Microsoft.Office.Interop.Excel.ChartObject chartObject;
         private static Microsoft.Office.Interop.Excel.Chart chart;
 
-        static void Main(string[] args)
+
+        private static void initActivityMonitor()
         {
-
-            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Count() > 1)
-                Process.GetCurrentProcess().Kill();
-
-            RegisterInStartup();
-
-            /** define backup dir**/
+            /**************** define backup dir *********************/
             dir = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\AM\\";
             Directory.CreateDirectory(dir);
 
-            TimeSpan startTime = new TimeSpan(9, 0, 0);
-            TimeSpan endTime = new TimeSpan(18, 57, 0);
-            TimeSpan interval = new TimeSpan(0, 1, 0);
+            startTime = new TimeSpan(9, 0, 0);
+            endTime = new TimeSpan(17, 0, 0);
+            interval = new TimeSpan(0, 1, 0);
 
             /**** set console configurations ****/
             //Console.WindowHeight = 50;
@@ -67,8 +66,26 @@ namespace ActivityMonitor
 
             Console.WriteLine("Process Name".PadRight(30) + "Duration".PadRight(20) + "Main Window Title");
 
-            /**** start screen lock listner ****/
-            SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SysEventsCheck);
+        }
+
+        static void Main(string[] args)
+        {
+
+            initActivityMonitor();
+
+            /**************** Kill If Process Exists ****************/
+            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Count() > 1)
+                Process.GetCurrentProcess().Kill();
+
+            /***************** Set UI Property **********************/
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            /****************** Add to StartUp **********************/
+            addToStartup();
+
+            /*************** start screen lock listner **************/
+            SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEventListner);
 
             Thread schedular = new Thread(() => botSchedular(startTime, endTime, interval));
             schedular.Start();
@@ -80,11 +97,10 @@ namespace ActivityMonitor
             //    if (c.Key == ConsoleKey.Enter)
             //        generateExcel();
             //}
-
-       
+     
         }
 
-        private static void OnFocusChangedHandler(object src, AutomationFocusChangedEventArgs args)
+        private static void userEventListner(object src, AutomationFocusChangedEventArgs args)
         {
             try
             {
@@ -118,19 +134,16 @@ namespace ActivityMonitor
 
                     if (lastWindowName != null)
                     {
-
                         if (lastWindowName == mainWindowTitle)
                         {
                             currentActivity.endTime = startTime;
                             currentActivity.generateDuration();
                         }
-
                         else
                         {
                             activityList[lastWindowName].endTime = startTime;
                             activityList[lastWindowName].generateDuration();
                         }
-
                     }
                     currentActivity.startTime = startTime;
                     lastWindowName = mainWindowTitle;
@@ -149,6 +162,13 @@ namespace ActivityMonitor
 
         public static void generateExcel()
         {
+
+            packages = DBConnector.getInstance().getPackages();
+            buckets = DBConnector.getInstance().getBuckets();
+            generatePackageList();
+            checkProcess();
+            generateBucketList();
+
             /******************** create a workbook *************************/
             excel = new Microsoft.Office.Interop.Excel.Application();
             excel.Visible = false;
@@ -300,6 +320,7 @@ namespace ActivityMonitor
             excel.Quit();
             Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
             Console.WriteLine("Export to Excel");
+            Thread.Sleep(1000);
             System.Diagnostics.Process.Start(filePath);
         }
 
@@ -314,20 +335,20 @@ namespace ActivityMonitor
             }
         }
 
-        private static void SysEventsCheck(object sender, SessionSwitchEventArgs e)
+        private static void SystemEventListner(object sender, SessionSwitchEventArgs e)
         {
             switch (e.Reason)
             {
                 case SessionSwitchReason.SessionLock:
                     Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                     Console.WriteLine("Lock Encountered");
-                    OnFocusChangedHandler(element, null);
+                    userEventListner(element, null);
                     lastWindowName = null;
                     break;
                 case SessionSwitchReason.ConsoleDisconnect:
                     Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                     Console.WriteLine("Lock Encountered");
-                    OnFocusChangedHandler(element, null);
+                    userEventListner(element, null);
                     lastWindowName = null;
                     break;
                 //case SessionSwitchReason.SessionUnlock: Console.WriteLine("UnLock Encountered"); break;
@@ -344,13 +365,15 @@ namespace ActivityMonitor
                     if (isReset == false)
                     {
                         resetMonitor();
-                        isReset = true;
                         Deserialize();
-                        Automation.AddAutomationFocusChangedEventHandler(OnFocusChangedHandler);
+                        //if (!checkExcelIsgenerated())
+                        //    generateExcel();
+                        Automation.AddAutomationFocusChangedEventHandler(userEventListner);
                         Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         Console.WriteLine("start listner");
                         io = new Thread(() => Serialize());
                         io.Start();
+                        isReset = true;
                     }
                 }
                 else
@@ -362,15 +385,10 @@ namespace ActivityMonitor
                 {
                     if (isGenerate == false)
                     {
-                        Automation.RemoveAutomationFocusChangedEventHandler(OnFocusChangedHandler);
+                        Automation.RemoveAutomationFocusChangedEventHandler(userEventListner);
                         Console.WriteLine("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
                         Console.WriteLine("stop listner");
                         Thread.Sleep(100);
-                        packages = DBConnector.getInstance().getPackages();
-                        buckets = DBConnector.getInstance().getBuckets();
-                        generatePackageList();
-                        checkProcess();
-                        generateBucketList();
                         generateExcel();
                         isGenerate = true;
                         io.Abort();
@@ -383,7 +401,7 @@ namespace ActivityMonitor
             }
         }
 
-        private static void RegisterInStartup()
+        private static void addToStartup()
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
             if (registryKey.GetValue("CentroidBot") == null)
@@ -461,22 +479,13 @@ namespace ActivityMonitor
                         break;
                     }
                 }
-
                 if (isFound == false)
                 {
+                    Console.WriteLine(packagedActivity.Key);
                     FormUser formUser = new FormUser(packagedActivity.Key);
-                    //formUser.Show();
-                    Application.Run(formUser);
-                    while (formUser.getBucketName() == null)
-                    {
-                        Console.WriteLine("###");
-                        Thread.Sleep(100);
-                    }
-                    buckets[formUser.getBucketName()].Add(formUser.getAppName());
-                    //formUser.Close();
-                    Application.Exit();
+                    formUser.TopMost = true;
+                    Application.Run(formUser);                   
                 }
-
             }
         }
 
@@ -500,8 +509,21 @@ namespace ActivityMonitor
                 var f_fileStream = File.OpenRead(dir + DateTime.Now.ToString("yyyy-MM-dd") + ".amos");
                 var f_binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 activityList = (Dictionary<string, Activity>)f_binaryFormatter.Deserialize(f_fileStream);
+                lastWindowName = null;
                 f_fileStream.Close();
             }
         }
+
+
+        //public static bool checkExcelIsgenerated()
+        //{
+        //    bool isGenerated = false;
+        //    DateTime today = DateTime.Now;
+        //    DateTime yesterday = today.AddDays(-1);
+        //    if (File.Exists(dir + yesterday.ToString("yyyy-MM-dd")))
+        //        isGenerated = true;
+
+        //    return isGenerated;
+        //}
     }
 }
