@@ -1,0 +1,2 @@
+ipconfig - show information
+ipconfig /all - show detailed infirmation

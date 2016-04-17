@@ -1,0 +1,1 @@
+Dism /online /enable-feature /featurename:NetFx3 /All /Source:F:\sources\sxs /LimitAccess

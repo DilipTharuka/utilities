@@ -1,0 +1,3 @@
+netsh wlan set hostednetwork mode=allow ssid=<enter_network_name_here> key=<enter_password_here>
+
+netsh wlan start hostednetwork
